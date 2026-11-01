@@ -14,7 +14,7 @@ backend with `PYTHONPATH=backend` and the frontend with `PYTHONPATH=frontend`.
 - `backend/app/repositories` — SQLAlchemy only. No HTTP and no model calls.
 - `backend/app/agent` — orchestrator, versioned prompts, guardrails, tool adapters.
 - `backend/app/rag` — chunking, ingestion, retrieval.
-- `backend/app/core` — settings. Load `.env.{APP_ENV}` and fail fast when a required value is missing.
+- `backend/app/core` — settings. Load the repo-root `.env` and fail fast when a required value is missing.
 - `frontend/app` — Dash UI and an httpx client. No database, model, or vector-store imports.
 
 Allowed direction: `api` → `services` → `repositories`, and `services` → `agent` → `rag`. Repositories and RAG do not import the API.

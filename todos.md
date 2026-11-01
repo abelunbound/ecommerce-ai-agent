@@ -37,9 +37,9 @@ Write `docs/architecture.md` and a few one-page decision records:
 
 ## 3. Config
 
-- [ ] `core/config.py` with pydantic-settings
-- [ ] Settings load `.env.{APP_ENV}`
-- [ ] Process fails fast when a required value is missing
+- [x] `core/config.py` with pydantic-settings
+- [x] Settings load `.env`
+- [x] Process fails fast when a required value is missing
 
 **Done when:** a test proves a missing `OPENAI_API_KEY` raises a clear error.
 

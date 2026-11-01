@@ -98,12 +98,12 @@ api → services → repositories
 
 | Environment | Role | Database | Vector index | Secrets |
 | --- | --- | --- | --- | --- |
-| local | Day-to-day prototype | SQLite file | Pinecone dev index | `.env.local` |
-| dev | Shared integration | Postgres | Pinecone dev index | `.env.dev` |
+| local | Day-to-day prototype | SQLite file | Pinecone dev index | repo-root `.env` |
+| dev | Shared integration | Postgres | Pinecone dev index | process environment |
 | staging | Pre-production | Postgres | Separate index | Secret manager, later |
 | production | Live | Postgres | Separate index | Secret manager, later |
 
-`APP_ENV` selects `.env.{APP_ENV}`. A missing required value fails process startup. CI runs the same migrations and tests against SQLite and Postgres from the first schema change.
+Local work reads one repo-root `.env`. `APP_ENV` is a label in that file. Deployed environments supply the same variable names in the process environment. A missing required value fails process startup. CI runs the same migrations and tests against SQLite and Postgres from the first schema change.
 
 ## Prototype stack
 
