@@ -1,0 +1,24 @@
+---
+description: Backend and frontend layering for the Lumen & Oak support agent
+alwaysApply: true
+---
+
+# Layering
+
+Two packages, one repo virtualenv. Both import as `app`, so run the 
+backend with `PYTHONPATH=backend` and the frontend with `PYTHONPATH=frontend`.
+
+- `backend/app/api` — FastAPI routes only. Call services. Do not call repositories, the model, or Pinecone.
+- `backend/app/schemas` — Pydantic request and response models.
+- `backend/app/services` — use cases. The only layer the API calls for work.
+- `backend/app/repositories` — SQLAlchemy only. No HTTP and no model calls.
+- `backend/app/agent` — orchestrator, versioned prompts, guardrails, tool adapters.
+- `backend/app/rag` — chunking, ingestion, retrieval.
+- `backend/app/core` — settings. Load `.env.{APP_ENV}` and fail fast when a required value is missing.
+- `frontend/app` — Dash UI and an httpx client. No database, model, or vector-store imports.
+
+Allowed direction: `api` → `services` → `repositories`, and `services` → `agent` → `rag`. Repositories and RAG do not import the API.
+
+Tools are adapters over services. Order lookup, tickets, and the customer-verification gate must have tests that never call a model.
+
+The agent may write a pending refund or cancellation. It must not execute one without an approval record.
