@@ -29,8 +29,7 @@ Write `docs/architecture.md` and a few one-page decision records:
 
 ## 2. CI
 
-- [ ] GitHub Actions: lint, type-check, and tests on every push and pull r
-- [ ] quest
+- [ ] GitHub Actions: lint, type-check, and tests on every push and pull request
 - [ ] Branch protection on `main`
 
 **Done when:** a trivial PR shows a green check.
@@ -45,9 +44,9 @@ Write `docs/architecture.md` and a few one-page decision records:
 
 ## 4. Walking skeleton
 
-- [ ] FastAPI `GET /health`
-- [ ] A Dash page that calls it via httpx
-- [ ] One test on the API side, one test on the Dash side
+- [x] FastAPI `GET /health`
+- [x] A Dash page that calls it via httpx
+- [x] One test on the API side, one test on the Dash side
 
 **Done when:** `make run` shows the Dash page reporting backend health.
 

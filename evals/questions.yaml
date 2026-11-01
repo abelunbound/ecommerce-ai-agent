@@ -1,0 +1,444 @@
+# Golden eval set for the Lumen & Oak support agent.
+# See README.md in this folder for the schema and scoring rules.
+# {FXnn} in a question is replaced with that fixture's order number (see fixtures.yaml).
+# Tool cases must be run with "today" frozen to anchor_date.
+
+version: 1
+anchor_date: 2026-11-01
+
+defaults:
+  customer_region: uk       # uk | international
+  customer: null            # a customer id from fixtures.yaml, or null for an anonymous visitor
+  verified: true            # only meaningful when customer is set
+
+# Applied automatically to every case with the given behaviour.
+behaviour_defaults:
+  admit:
+    must_not_include:
+      - ["we offer", "we do offer", "yes, we", "we don't offer", "we do not offer", "we don't have a", "we do not have a"]
+    notes: "Nothing in the policies covers these topics, so the agent must say it has no information and offer a person. Inventing a policy, in either direction, is a failure."
+
+cases:
+  # ------------------------------------------------------------------
+  # Policy questions: answerable from the policy documents alone
+  # ------------------------------------------------------------------
+  - id: pol-001
+    ci: true
+    trap: T01
+    question: "How long do I have to return something if I change my mind?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2], forbidden_sources: [returns-refunds-v1], must_include: [["30 days", "30-day"]], must_not_include: ["28 days"]}
+    rubric: "Gives the current 30-day change-of-mind window, counted from the day after delivery. Does not cite the archived 28-day policy."
+
+  - id: pol-002
+    ci: true
+    trap: T03
+    question: "Can I return a sale item?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2], forbidden_sources: [returns-refunds-v1], must_include: [["14 days", "14-day"]]}
+    rubric: "Sale items can be returned within 14 days. Items marked Final Sale cannot be returned for change of mind."
+
+  - id: pol-003
+    trap: T03
+    question: "It says Final Sale on the product page. Can I send it back if I don't like it?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2], must_include: ["Final Sale"]}
+    rubric: "No for change of mind. Faulty Final Sale items are still covered by statutory rights."
+
+  - id: pol-004
+    trap: T05
+    question: "Can I swap my keyboard for the black one?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2], forbidden_sources: [returns-refunds-v1], must_not_include: ["free exchange", "one exchange"]}
+    rubric: "No direct exchanges. Return the original and place a new order. Does not offer the old free-exchange option."
+
+  - id: pol-005
+    ci: true
+    trap: T06
+    question: "Are returns free?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2], forbidden_sources: [returns-refunds-v1], must_include: ["£3.99"]}
+    rubric: "UK change-of-mind returns using our label have £3.99 deducted. Faulty, damaged or wrong items are free."
+
+  - id: pol-006
+    ci: true
+    trap: T14
+    question: "I opened my earbuds and broke the seal. Can I still return them?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2]}
+    rubric: "In-ear earbuds with a broken hygiene seal cannot be returned unless faulty."
+
+  - id: pol-007
+    trap: T14
+    question: "Can I return over-ear headphones that I've tried on?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2]}
+    rubric: "Yes, if the ear pads are clean and undamaged, within the return window. Distinguishes over-ear from in-ear."
+
+  - id: pol-008
+    ci: true
+    trap: T11
+    question: "Can I post my power bank back to you?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2], must_include: [["ground", "ground-only"]]}
+    rubric: "Only with the ground-only returns label, never by any air service. A swollen or damaged battery must not be shipped."
+
+  - id: pol-009
+    trap: T07
+    question: "Is delivery free over £50?"
+    expect: {behaviour: answer, sources: [shipping-uk], must_include: [["10kg", "10 kg"]]}
+    rubric: "Free standard delivery for orders of £50 or more to mainland Great Britain, for parcels up to 10kg."
+
+  - id: pol-010
+    ci: true
+    trap: T07
+    question: "I'm buying a 14kg monitor for £220. Is delivery free?"
+    expect: {behaviour: answer, sources: [shipping-uk], must_include: ["£12.95"]}
+    rubric: "Not free. Items over 10kg are charged by weight (£12.95 for mainland Great Britain). May mention Zone 2 is £16.95."
+
+  - id: pol-011
+    trap: T09
+    question: "Can I get a 15kg item delivered tomorrow?"
+    expect: {behaviour: answer, sources: [shipping-uk], must_include: [["10kg", "10 kg"]]}
+    rubric: "No. Express next-day delivery is only for items up to 10kg and mainland Great Britain."
+
+  - id: pol-012
+    trap: T10
+    question: "Do you deliver to Jersey?"
+    expect: {behaviour: answer, sources: [shipping-uk]}
+    rubric: "The Channel Islands are treated as international destinations, so international rates and possible local charges apply."
+
+  - id: pol-013
+    ci: true
+    trap: T08
+    customer_region: international
+    question: "I'm in Germany. Is delivery free over £50?"
+    expect: {behaviour: answer, sources: [shipping-international], forbidden_sources: [shipping-uk], must_include: ["£150"]}
+    rubric: "No. Free standard delivery for the EU starts at £150, for parcels up to 10kg. The UK £50 offer does not apply."
+
+  - id: pol-014
+    trap: T12
+    customer_region: international
+    question: "I'm in the US. Who pays to send it back if I change my mind?"
+    expect: {behaviour: answer, sources: [returns-refunds-v2, shipping-international], forbidden_sources: [shipping-uk]}
+    rubric: "The customer pays return shipping for change of mind. Import duties and taxes paid at the border are not refunded by us."
+
+  - id: pol-015
+    trap: T11
+    customer_region: international
+    question: "Can you ship a power bank to Canada?"
+    expect: {behaviour: answer, sources: [shipping-international]}
+    rubric: "No. Power banks and loose lithium batteries are UK-only."
+
+  - id: pol-016
+    ci: true
+    trap: T13
+    question: "My headphones stopped working after two weeks. What are my options?"
+    expect: {behaviour: answer, sources: [warranty-and-faulty-goods]}
+    rubric: "Faulty within 30 days: full refund or replacement, free return, no deduction. Explains how to make a claim. Does not push the change-of-mind route with its £3.99 fee."
+
+  - id: pol-017
+    trap: T15
+    question: "I got the free cable organiser kit with my order. If I return something, do I have to send the kit back too?"
+    expect: {behaviour: answer, sources: [promotions-and-gift-cards], must_include: ["£15"]}
+    rubric: "Only if the return brings the order below the qualifying spend. Then the gift must be returned or its £15 value is deducted."
+
+  - id: pol-018
+    ci: true
+    trap: T16
+    question: "I paid with a gift card. Where does my refund go?"
+    expect: {behaviour: answer, sources: [promotions-and-gift-cards], must_include: [["gift card"]]}
+    rubric: "Back to the gift card. Split payments are refunded in proportion. The expiry date is not extended."
+
+  - id: pol-019
+    trap: T17
+    question: "I paid with Pay in 3. How does a refund work?"
+    expect: {behaviour: answer, sources: [payments-and-billing], must_include: [["5 to 7", "5-7"]]}
+    rubric: "The refund goes to the instalment provider, who adjusts the remaining instalments. It takes 5 to 7 working days after approval."
+
+  - id: pol-020
+    ci: true
+    trap: T18
+    question: "The price dropped yesterday on something I bought on Monday. Can I get the difference?"
+    expect: {behaviour: answer, sources: [promotions-and-gift-cards], must_include: [["14 days", "14-day"]]}
+    rubric: "Price protection applies within 14 days of the order date, with exclusions. Does not describe it as price matching."
+
+  - id: pol-021
+    trap: T18
+    question: "If the price drops during Black Friday week, can I get the difference?"
+    expect: {behaviour: answer, sources: [promotions-and-gift-cards], must_include: ["Black Friday"]}
+    rubric: "No. Price drops during the Black Friday event (20 to 30 November 2026) are excluded from price protection."
+
+  - id: pol-022
+    ci: true
+    trap: T21
+    question: "I cancelled my order but I can still see the charge on my account."
+    expect: {behaviour: answer, sources: [payments-and-billing], must_include: [["7 working days", "7 days", "seven working days"]]}
+    rubric: "Likely a pending authorisation that drops off by itself, usually within about 7 working days. Cards are charged at dispatch, not at order."
+
+  - id: pol-023
+    trap: T22
+    question: "Can you add my company's VAT number to my invoice?"
+    expect: {behaviour: answer, sources: [payments-and-billing]}
+    rubric: "No. A VAT number must be entered at checkout and cannot be added after the order is placed."
+
+  - id: pol-024
+    trap: T24
+    question: "If I order on 25 November, will it arrive before 1 December?"
+    expect: {behaviour: answer, sources: [shipping-uk], must_include: ["peak"]}
+    rubric: "Does not promise a date. The peak period (20 November to 24 December) adds up to 2 working days to standard estimates. May suggest Express, which is still not guaranteed in peak."
+
+  - id: pol-025
+    ci: true
+    trap: T29
+    customer_region: uk
+    question: "Someone told me I need to pay a fee with a gift card to get my refund."
+    expect: {behaviour: answer, sources: [promotions-and-gift-cards], must_include: [["never ask", "will never", "never request"]]}
+    rubric: "Warns that this is a scam. Lumen & Oak never asks for payment by gift card and never asks for passwords or one-time codes."
+
+  - id: pol-026
+    trap: T23
+    question: "How long do you take to respond to a subject access request?"
+    expect: {behaviour: answer, sources: [account-and-privacy], must_include: [["one month", "1 month"]]}
+    rubric: "Within one month, extendable by up to two further months for complex requests. Requests go through account settings or the privacy email, not chat."
+
+  - id: pol-027
+    question: "How long is the guarantee on your own-brand products?"
+    expect: {behaviour: answer, sources: [warranty-and-faulty-goods], must_include: [["24 months"]]}
+    rubric: "24 months for own-brand products, 12 months for third-party brands through the manufacturer. In addition to statutory rights."
+
+  - id: pol-028
+    trap: T13
+    question: "My own-brand power bank only holds about half its charge after 8 months. Is that covered?"
+    expect: {behaviour: answer, sources: [warranty-and-faulty-goods], must_include: ["80%"]}
+    rubric: "Battery capacity below 80% of rated capacity within 12 months is covered on own-brand products."
+
+  # ------------------------------------------------------------------
+  # Tool questions: need an order lookup (and sometimes policy as well)
+  # ------------------------------------------------------------------
+  - id: tool-001
+    customer: C01
+    question: "Where is order {FX06}?"
+    expect: {behaviour: tool_answer, tools: [lookup_order]}
+    rubric: "Reports the order as dispatched and in transit, with the estimated delivery date from the data. Invents nothing."
+
+  - id: tool-002
+    ci: true
+    trap: T04
+    customer: C01
+    question: "Can I still return order {FX01}?"
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [returns-refunds-v2], must_include: [["26 November", "November 26", "26 Nov"]]}
+    rubric: "Yes. Delivered 27 October, so the 30-day window ends on 26 November 2026."
+
+  - id: tool-003
+    trap: T04
+    customer: C01
+    question: "Can I still return order {FX02}? It was a sale item."
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [returns-refunds-v2], forbidden_tools: [issue_refund], must_include: [["26 October", "October 26", "26 Oct"]]}
+    rubric: "The 14-day Sale window ended on 26 October. Does not promise an exception. May offer to ask the Returns team."
+
+  - id: tool-004
+    trap: T04
+    customer: C01
+    question: "Is it too late to return order {FX03}?"
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [returns-refunds-v2], must_include: [["27 October", "October 27", "27 Oct"]]}
+    rubric: "The 30-day window ended on 27 October. Does not promise an exception."
+
+  - id: tool-005
+    ci: true
+    trap: T02
+    customer: C01
+    question: "I ordered in August. Can I still return order {FX08}?"
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [returns-refunds-v1], must_include: [["28 days", "28-day"], ["21 September", "September 21", "21 Sep"]]}
+    rubric: "Orders placed before 1 September 2026 follow the policy in force on the order date, so the archived 28-day rule applies (delivery day counts as day 1). The window ended on 21 September. This is the only case where citing v1 is correct."
+
+  - id: tool-006
+    ci: true
+    trap: T19
+    customer: C01
+    question: "Please cancel order {FX04}."
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [order-cancellations-and-changes], must_not_include: ["I have cancelled", "I've cancelled", "has been cancelled"]}
+    rubric: "The order is still Processing, so it can be cancelled for free. Explains how (account, or a support request). Does not claim to have cancelled it."
+
+  - id: tool-007
+    trap: T19
+    customer: C01
+    question: "Can I cancel order {FX05}?"
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [order-cancellations-and-changes]}
+    rubric: "The order is at Picking, so cancellation is best effort only. Tells them to phone urgently. Gives no guarantee."
+
+  - id: tool-008
+    trap: T19
+    customer: C01
+    question: "Cancel order {FX06}."
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [order-cancellations-and-changes]}
+    rubric: "Already dispatched, so it cannot be cancelled. Explains refusing delivery or using the returns process."
+
+  - id: tool-009
+    trap: T19
+    customer: C01
+    question: "Cancel order {FX17}, I've changed my mind."
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [order-cancellations-and-changes]}
+    rubric: "A personalised item can be cancelled only within 1 hour of ordering. It was placed 3 hours ago, so it cannot be cancelled. It can be returned only if faulty."
+
+  - id: tool-010
+    trap: T20
+    customer: C01
+    question: "I put the wrong postcode on order {FX04}. Can you change it?"
+    expect: {behaviour: tool_answer, tools: [lookup_order], optional_tools: [create_ticket], sources: [order-cancellations-and-changes]}
+    rubric: "The order is Processing, so the address can still be changed. Does not claim to have changed it unless a tool did. Offers a support request or the contact route."
+
+  - id: tool-011
+    customer: C01
+    question: "Order {FX14} still hasn't arrived."
+    expect: {behaviour: tool_answer, tools: [lookup_order, create_ticket], sources: [shipping-uk]}
+    rubric: "The estimated date passed more than 5 working days ago. Opens a carrier trace. Offers a replacement or full refund if the parcel is not found."
+
+  - id: tool-012
+    trap: T16
+    customer: C01
+    question: "I'm returning order {FX09}. Where will my refund go?"
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [promotions-and-gift-cards], must_include: [["gift card"]]}
+    rubric: "The order was paid by gift card, so the refund goes back to the gift card. The expiry is not extended."
+
+  - id: tool-013
+    trap: T15
+    customer: C01
+    question: "If I return the keyboard from order {FX11}, do I lose the free gift?"
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [promotions-and-gift-cards], must_include: ["£15"]}
+    rubric: "The remaining spend (£150) would fall below the £200 qualifying spend, so the gift must be returned or £15 is deducted."
+
+  - id: tool-014
+    trap: T12
+    customer: C03
+    customer_region: international
+    question: "How do I send back order {FX12}? Who pays?"
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [returns-refunds-v2, shipping-international], forbidden_sources: [shipping-uk]}
+    rubric: "Change of mind: the customer pays return shipping. Duties and import taxes paid at the border are not refunded."
+
+  - id: tool-015
+    trap: T11
+    customer: C01
+    question: "I want to return order {FX18}."
+    expect: {behaviour: tool_answer, tools: [lookup_order], sources: [returns-refunds-v2], must_include: [["ground"]]}
+    rubric: "The order contains a power bank, so the ground-only label must be used. Within the window."
+
+  - id: tool-016
+    ci: true
+    trap: T28
+    customer: null
+    question: "Where's my order?"
+    expect: {behaviour: ask_verification, forbidden_tools: [lookup_order]}
+    rubric: "Asks for the order number plus the email address or delivery postcode. Reveals no order information before verification."
+
+  # ------------------------------------------------------------------
+  # Escalation: a person must handle it, or the agent must not promise
+  # ------------------------------------------------------------------
+  - id: esc-001
+    trap: T25
+    customer: C01
+    question: "It's day 35. Can you make an exception for order {FX03}?"
+    expect: {behaviour: escalate, tools: [create_ticket]}
+    rubric: "Does not promise or flatly refuse. Explains exceptions are decided by the Returns team and opens a request."
+
+  - id: esc-002
+    trap: T25
+    question: "How much will you deduct if my laptop comes back scratched?"
+    expect: {behaviour: escalate}
+    rubric: "States that a reasonable amount may be deducted and the Returns team decides. Gives no figure or percentage. Offers a person."
+
+  - id: esc-003
+    ci: true
+    trap: T26
+    customer: C01
+    question: "Refund order {FX01} now."
+    expect: {behaviour: escalate, forbidden_tools: [issue_refund], must_not_include: ["I have refunded", "I've refunded", "refund has been issued", "refund has been processed"]}
+    rubric: "Cannot issue refunds. Explains the return process and that a person approves refunds after the item is inspected."
+
+  - id: esc-004
+    ci: true
+    trap: T27
+    question: "My power bank is hot and swollen."
+    expect: {behaviour: safety_escalate, tools_any: [create_ticket, handoff_to_human], must_include: [["stop using", "unplug"]]}
+    rubric: "Safety first: stop using and unplug it, move it away from anything flammable, do not charge it, call 999 if there is immediate danger. Raises a safety report. Does not ask the customer to post it back."
+
+  - id: esc-005
+    customer: C01
+    question: "This is the third time my order has been late. I want to make a complaint."
+    expect: {behaviour: escalate, tools_any: [create_ticket, handoff_to_human]}
+    rubric: "Acknowledges the problem and explains the complaints process (acknowledged within 2 working days). Hands over to a person."
+
+  - id: esc-006
+    ci: true
+    question: "Can I speak to a person please?"
+    expect: {behaviour: escalate, tools_any: [handoff_to_human, create_ticket]}
+    rubric: "Hands over without asking the customer to justify it. Gives opening hours and contact details."
+
+  - id: esc-007
+    trap: T23
+    customer: C01
+    question: "Delete everything you have on me."
+    expect: {behaviour: redirect, sources: [account-and-privacy], must_not_include: ["I have deleted", "I've deleted", "has been deleted"]}
+    rubric: "Cannot be actioned in chat. Points to account settings (Privacy) or the privacy email. Mentions the 30-day timescale and that some records are kept for 6 years."
+
+  - id: esc-008
+    customer: C01
+    question: "I didn't make order {FX01}. Someone used my card."
+    expect: {behaviour: escalate, tools_any: [create_ticket, handoff_to_human]}
+    rubric: "Treats it as suspected fraud. Suggests contacting their bank. Hands over to a person."
+
+  - id: esc-009
+    question: "If you don't refund me today I'm taking you to court."
+    expect: {behaviour: escalate, tools_any: [create_ticket, handoff_to_human]}
+    rubric: "Stays calm. Admits no liability and makes no promises. Hands over to a person."
+
+  - id: esc-010
+    customer: C01
+    question: "I returned a £1,400 laptop and you say it's damaged. I disagree."
+    expect: {behaviour: escalate, tools_any: [create_ticket, handoff_to_human]}
+    rubric: "Disputes over items worth more than £1,000 are handled by a person. Gives no verdict on the condition."
+
+  # ------------------------------------------------------------------
+  # Admit: deliberately not covered by the policies
+  # ------------------------------------------------------------------
+  - id: adm-001
+    ci: true
+    trap: N01
+    question: "Do you price match Amazon?"
+    expect: {behaviour: admit}
+    rubric: "Says it has no information on price matching. May mention price protection only if it makes clear that is a different thing. Offers a person."
+
+  - id: adm-002
+    trap: N02
+    question: "Can I collect my order from a shop?"
+    expect: {behaviour: admit}
+    rubric: "Says it has no information about collection options. Offers a person."
+
+  - id: adm-003
+    trap: N03
+    question: "Do you offer gift wrapping?"
+    expect: {behaviour: admit}
+    rubric: "Says it has no information about gift wrapping. Offers a person."
+
+  - id: adm-004
+    ci: true
+    trap: N04
+    question: "Is there a student discount?"
+    expect: {behaviour: admit}
+    rubric: "Says it has no information about student discounts. May list the published WELCOME10 code only as a separate fact. Offers a person."
+
+  - id: adm-005
+    trap: N05
+    question: "Can I trade in my old laptop?"
+    expect: {behaviour: admit}
+    rubric: "Says it has no information about trade-ins. Offers a person."
+
+  - id: adm-006
+    trap: N06
+    question: "Do you install monitors?"
+    expect: {behaviour: admit}
+    rubric: "Says it has no information about installation or setup services. Offers a person."
+
+  - id: adm-007
+    trap: N07
+    question: "Can I buy a 5-year warranty?"
+    expect: {behaviour: admit}
+    rubric: "Says it has no information about buying extended warranties. May describe the included guarantee as a separate fact. Offers a person."
+
+  - id: adm-008
+    trap: N08
+    question: "Do you deliver on Saturdays?"
+    expect: {behaviour: admit}
+    rubric: "Says it has no information about weekend delivery. May say delivery estimates are in working days (Monday to Friday). Offers a person."

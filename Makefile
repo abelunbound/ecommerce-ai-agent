@@ -1,4 +1,4 @@
-.PHONY: venv install backend frontend test lint
+.PHONY: venv install backend frontend run test lint
 
 venv:
 	python3 -m venv .venv
@@ -19,6 +19,13 @@ backend:
 	PYTHONPATH=backend uvicorn app.main:app --reload --port 8000
 
 frontend:
+	PYTHONPATH=frontend python -m app.main
+
+run:
+	set -e; \
+	PYTHONPATH=backend uvicorn app.main:app --port 8000 & \
+	pid=$$!; \
+	trap 'kill $$pid' EXIT INT TERM; \
 	PYTHONPATH=frontend python -m app.main
 
 test:

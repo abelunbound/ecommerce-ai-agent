@@ -1,6 +1,6 @@
+```text
 ecommerce-support-agent/
-├── .env.example                  # committed, no real values
-├── .env.local / .env.dev / .env.staging   # gitignored
+├── .env               # committed, no real values
 ├── docker-compose.yml            # local Postgres (+ optional services)
 ├── Makefile
 ├── README.md
@@ -40,6 +40,7 @@ ecommerce-support-agent/
 │
 └── frontend/                     # same shape as yours
     └── app/ (assets, callbacks, components, pages, api_client.py, config.py, layout.py, main.py)
+```
 
 
 source .venv/bin/activate

@@ -1,7 +1,7 @@
 [project]
 name = "lumen-oak-backend"
 version = "0.1.0"
-description = "Lumen & Oak support agent API"
+description = "Lumen & Oak support agent and backend API"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115",

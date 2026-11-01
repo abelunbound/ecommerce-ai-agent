@@ -1,0 +1,12 @@
+"""API health route."""
+
+from app.main import app
+from fastapi.testclient import TestClient
+
+
+def test_health_returns_ok() -> None:
+    """GET /health returns a 200 and status ok."""
+    response = TestClient(app).get("/health")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
