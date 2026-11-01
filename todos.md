@@ -29,8 +29,8 @@ Write `docs/architecture.md` and a few one-page decision records:
 
 ## 2. CI
 
-- [ ] GitHub Actions: lint, type-check, and tests on every push and pull request
-- [ ] Branch protection on `main`
+- [x] GitHub Actions: lint, type-check, and tests on every push and pull request
+- [x] Branch protection on `main`
 
 **Done when:** a trivial PR shows a green check.
 
@@ -42,6 +42,7 @@ Write `docs/architecture.md` and a few one-page decision records:
 
 **Done when:** a test proves a missing `OPENAI_API_KEY` raises a clear error.
 
+
 ## 4. Walking skeleton
 
 - [x] FastAPI `GET /health`
@@ -49,6 +50,8 @@ Write `docs/architecture.md` and a few one-page decision records:
 - [x] One test on the API side, one test on the Dash side
 
 **Done when:** `make run` shows the Dash page reporting backend health.
+
+### Logging
 
 ## 5. Database
 

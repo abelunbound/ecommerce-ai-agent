@@ -29,7 +29,16 @@ line-length = 100
 src = ["app", "tests"]
 
 [tool.ruff.lint]
-select = ["E", "F", "I", "UP", "B"]
+select = ["E", "F", "I", "UP", "B", "D", "G", "T20"]
+# D107: the class docstring covers __init__.
+ignore = ["D107"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+"**/__init__.py" = ["D104"]
 
 [tool.mypy]
 python_version = "3.11"

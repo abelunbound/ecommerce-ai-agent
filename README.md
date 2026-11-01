@@ -1,3 +1,17 @@
+# Ecommerce Support Agent
+
+The Ecommerce Support Agent is a customer-support assistant for **Lumen & Oak**, a fictional UK retailer. It answers questions about policies, orders, and accounts in natural language, using the store's own documentation and live order data. Where it cannot help safely, it hands the conversation to a human.
+
+The project is a working prototype structured so it can grow into an MVP and a production system. Policies and seed data are synthetic, so the system can be developed, tested, and demonstrated without real customer information.
+
+Logging rules are in [docs/logging.md](docs/logging.md).
+
+## Objective
+
+Build a realistic retrieval-plus-tools support agent end to end, with ordinary engineering practice around it.
+
+Quality is measured with an evaluation set of answerable, tool-requiring, and out-of-scope questions, so a change to chunking, models, or prompts is judged on evidence. Providers stay swappable through configuration wherever that is cheap. The database path is SQLite for local prototype work, with PostgreSQL in CI from the first migration and as the database for the MVP and production.
+
 ```text
 ecommerce-support-agent/
 ├── .env               # committed, no real values
@@ -43,6 +57,7 @@ ecommerce-support-agent/
 ```
 
 
+### Secrets Baseline
 source .venv/bin/activate
 pip install 'detect-secrets==1.5.0'
 detect-secrets scan --exclude-files '\.env$|\.venv/' > .secrets.baseline

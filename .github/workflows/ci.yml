@@ -18,7 +18,9 @@ jobs:
         run: pip install -e "backend[dev]" -e "frontend[dev]"
 
       - name: Lint
-        run: ruff check backend frontend
+        run: |
+          ruff check backend frontend
+          ruff format --check backend frontend
 
       - name: Type-check backend
         working-directory: backend
